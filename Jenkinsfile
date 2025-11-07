@@ -70,7 +70,7 @@ pipeline {
               which docker || echo "Docker already installed"
 	      which docker-compose || echo "Docker Compose plugin already installed"
 
-              sudo mkdir -p /opt/examportal && sudo chown $USER:$USER /opt/examportal
+              sudo mkdir -p /opt/examportal && sudo chown ubuntu:ubuntu /opt/examportal
               cd /opt/examportal
 
               if [ -d .git ]; then
