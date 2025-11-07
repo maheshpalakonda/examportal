@@ -67,7 +67,8 @@ pipeline {
             ssh -o StrictHostKeyChecking=no ${SERVER_USER}@${SERVER_HOST} '
               set -e
               sudo apt-get update -y
-              sudo apt-get install -y docker.io docker-compose-plugin git || true
+              which docker || echo "Docker already installed"
+	      which docker-compose || echo "Docker Compose plugin already installed"
 
               sudo mkdir -p /opt/examportal && sudo chown $USER:$USER /opt/examportal
               cd /opt/examportal
