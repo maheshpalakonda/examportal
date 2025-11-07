@@ -109,7 +109,7 @@ CREATE TABLE results (
 ALTER TABLE results MODIFY total_questions INT NOT NULL DEFAULT 0;
 ALTER TABLE results MODIFY score INT NOT NULL DEFAULT 0;
 
-ALTER TABLE questions MODIFY question_text TEXT NOT NULL DEFAULT '';
+ALTER TABLE questions MODIFY question_text TEXT NOT NULL;
 ALTER TABLE questions MODIFY correct_answer VARCHAR(255) DEFAULT '';
 
 
