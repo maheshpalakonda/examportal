@@ -1,0 +1,47 @@
+name: examportal
+services:
+  db:
+    image: mysql:8.0
+    container_name: examportal-db
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-newexam}
+    volumes:
+      - dbdata:/var/lib/mysql
+      # first run only: seed schema/tables
+      - ./examportal.sql:/docker-entrypoint-initdb.d/01_init.sql:ro
+    ports:
+      - "3306:3306"
+    healthcheck:
+      test: ["CMD-SHELL","mysqladmin ping -h 127.0.0.1 -p${MYSQL_ROOT_PASSWORD} --silent"]
+      interval: 10s
+      timeout: 5s
+      retries: 15
+
+  backend:
+    image: ${DOCKERHUB_USER}/examportal-backend:${IMAGE_TAG:-latest}
+    container_name: examportal-backend
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://db:3306/${MYSQL_DATABASE:-newexam}?useSSL=false&serverTimezone=UTC
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      SERVER_PORT: "8080"
+    ports:
+      - "8080:8080"
+    restart: unless-stopped
+
+  frontend:
+    image: ${DOCKERHUB_USER}/examportal-frontend:${IMAGE_TAG:-latest}
+    container_name: examportal-frontend
+    depends_on:
+      - backend
+    ports:
+      - "80:80"
+    restart: unless-stopped
+
+volumes:
+  dbdata:
+
