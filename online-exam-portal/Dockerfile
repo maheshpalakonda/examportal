@@ -1,23 +1,21 @@
 # ---- build ----
 FROM node:20 AS build
 WORKDIR /app
-
-# Copy and install dependencies
 COPY package*.json ./
 RUN npm ci || npm install
-
-# Copy source and build Angular app
 COPY . .
 RUN npx ng build --configuration production || npm run build
 
 # ---- serve ----
 FROM nginx:stable
 
-# ✅ Correct path (check if your Angular dist path is /app/dist/online-exam-portal)
+# If your Angular output is in a subfolder, adjust this to the exact path:
+# COPY --from=build /app/dist/online-exam-portal/browser /usr/share/nginx/html
 COPY --from=build /app/dist /usr/share/nginx/html
 
-# ✅ Clean & valid nginx config (no $$ escaping)
-RUN echo 'server {
+# Write nginx config via heredoc (no parsing issues, $vars stay intact)
+RUN cat >/etc/nginx/conf.d/default.conf <<'NGINX'
+server {
     listen 80;
     server_name _;
     root /usr/share/nginx/html;
@@ -35,7 +33,8 @@ RUN echo 'server {
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_set_header X-Forwarded-Proto $scheme;
     }
-}' > /etc/nginx/conf.d/default.conf
+}
+NGINX
 
 EXPOSE 80
 CMD ["nginx", "-g", "daemon off;"]
