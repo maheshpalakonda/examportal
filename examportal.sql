@@ -2,7 +2,7 @@
 
 
 
-CREATE DATABASE  newexam;
+CREATE DATABASE IF NOT EXISTS newexam;
 USE newexam;
 
 
