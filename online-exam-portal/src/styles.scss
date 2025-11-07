@@ -1,0 +1,36 @@
+/* You can add global styles to this file, and also import other style files */
+html, body { height: 100%; }
+body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
+
+/* Ensure all code editors have left-to-right text direction */
+app-codemirror-editor {
+  direction: ltr !important;
+  text-align: left !important;
+}
+
+app-codemirror-editor .cm-editor {
+  direction: ltr !important;
+  text-align: left !important;
+}
+
+app-codemirror-editor .cm-content {
+  direction: ltr !important;
+  text-align: left !important;
+  white-space: pre !important;
+}
+
+app-codemirror-editor .cm-line {
+  direction: ltr !important;
+  text-align: left !important;
+}
+
+// Custom Snackbar styles for proctoring warnings
+.warn-snackbar {
+    background-color: #ffa000; // Amber color for warnings
+    color: white;
+}
+
+.error-snackbar {
+    background-color: #d32f2f; // Red color for errors/termination
+    color: white;
+}

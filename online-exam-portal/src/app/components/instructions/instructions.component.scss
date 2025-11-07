@@ -1,0 +1,90 @@
+.container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  background-color: #f5f5f5;
+}
+
+mat-card {
+  width: 100%;
+  max-width: 700px;
+}
+
+mat-list-item {
+    margin-bottom: 16px;
+    min-height: auto !important;
+    height: auto !important;
+}
+
+mat-list-item ::ng-deep .mat-list-item-content {
+    height: auto !important;
+    min-height: auto !important;
+}
+
+.agreement-section {
+    margin-top: 2rem;
+    padding: 16px;
+    background-color: #f8f9fa;
+    border-radius: 8px;
+    border: 1px solid #e9ecef;
+}
+
+.agreement-checkbox {
+    width: 100%;
+}
+
+// Custom checkbox styling for blue tick
+::ng-deep .agreement-checkbox .mat-checkbox-checked .mat-checkbox-background {
+    background-color: #1976d2 !important; /* Blue color */
+}
+
+::ng-deep .agreement-checkbox .mat-checkbox-indeterminate .mat-checkbox-background {
+    background-color: #1976d2 !important; /* Blue color for indeterminate state */
+}
+
+.agreement-text {
+    font-weight: 500;
+    line-height: 1.5;
+    margin-left: 8px;
+    white-space: normal;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+}
+
+.instruction-text {
+    line-height: 1.5;
+    margin-left: 8px;
+    white-space: normal;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+}
+
+.permission-check, .permission-granted {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    margin-top: 1rem;
+    padding: 12px;
+    border-radius: 4px;
+}
+
+.permission-check {
+    background-color: #fff3cd;
+    color: #0306b8;
+}
+
+.permission-granted {
+    background-color: #d4edda;
+    color: #155724;
+}
+
+.spinning {
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}

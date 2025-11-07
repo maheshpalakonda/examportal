@@ -1,0 +1,35 @@
+<svg width="1920" height="1080" viewBox="0 0 1920 1080" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bgGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#051650;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#0a2a7a;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#051650;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="textGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#ffffff;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#90ee90;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  <rect width="1920" height="1080" fill="url(#bgGradient)"/>
+  <circle cx="300" cy="200" r="150" fill="#ffffff" opacity="0.1"/>
+  <circle cx="1600" cy="800" r="200" fill="#90ee90" opacity="0.1"/>
+  <rect x="100" y="600" width="300" height="300" fill="#ffffff" opacity="0.05" transform="rotate(45 250 750)"/>
+  <text x="960" y="300" font-family="Arial, sans-serif" font-size="72" font-weight="bold" text-anchor="middle" fill="url(#textGradient)">Apical Soft Solutions</text>
+  <text x="960" y="380" font-family="Arial, sans-serif" font-size="36" font-weight="300" text-anchor="middle" fill="#ffffff">Online Exam Portal</text>
+  <text x="960" y="440" font-family="Arial, sans-serif" font-size="24" text-anchor="middle" fill="#90ee90">Advancing Education Through Technology</text>
+  <g transform="translate(200, 500)">
+    <rect x="0" y="0" width="80" height="60" rx="5" fill="#ffffff" opacity="0.8"/>
+    <rect x="10" y="10" width="60" height="40" fill="#051650"/>
+    <circle cx="25" cy="25" r="3" fill="#90ee90"/>
+    <circle cx="40" cy="25" r="3" fill="#90ee90"/>
+    <circle cx="55" cy="25" r="3" fill="#90ee90"/>
+  </g>
+  <g transform="translate(1400, 550)">
+    <polygon points="0,20 40,20 50,0 60,20 100,20 100,30 0,30" fill="#ffffff" opacity="0.8"/>
+    <rect x="40" y="10" width="20" height="10" fill="#90ee90"/>
+  </g>
+  <circle cx="500" cy="150" r="8" fill="#90ee90" opacity="0.6"/>
+  <circle cx="600" cy="100" r="5" fill="#ffffff" opacity="0.4"/>
+  <circle cx="1300" cy="200" r="6" fill="#90ee90" opacity="0.5"/>
+  <circle cx="1500" cy="150" r="4" fill="#ffffff" opacity="0.3"/>
+</svg>

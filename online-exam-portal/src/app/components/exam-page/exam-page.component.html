@@ -1,0 +1,332 @@
+<!-- Hidden camera video for proctoring -->
+<video #videoElement autoplay muted playsinline class="hidden-video" style="display:none;"></video>
+
+<!-- Proctoring warnings -->
+<div *ngIf="warningCount > 0" class="warning-overlay">
+  <div class="warning-box">
+    <mat-icon>warning</mat-icon>
+    <span>Proctoring Alert: Face Not Detected ({{ warningCount }}/{{ maxWarnings }})</span>
+  </div>
+</div>
+
+<!-- Voice detection warnings -->
+<div *ngIf="voiceWarningCount > 0" class="warning-overlay voice-warning">
+  <div class="warning-box">
+    <mat-icon>mic</mat-icon>
+    <span>Proctoring Alert: Voice Detected ({{ voiceWarningCount }}/{{ maxVoiceWarnings }})</span>
+  </div>
+</div>
+
+<!-- Loading overlay -->
+<div *ngIf="isLoading" class="loading-shade">
+  <mat-spinner></mat-spinner>
+  <p>Loading exam and activating proctoring...</p>
+</div>
+
+<!-- Error state -->
+<div *ngIf="!isLoading && !exam" class="error-state">
+  <mat-card class="error-card">
+    <mat-card-content>
+      <mat-icon class="error-icon">error_outline</mat-icon>
+      <h2>Unable to Load Exam</h2>
+      <p>There was an error loading the exam data. This might be due to:</p>
+      <ul>
+        <li>No active exam is currently available</li>
+        <li>Network connectivity issues</li>
+        <li>Server maintenance</li>
+      </ul>
+      <p>Please try refreshing the page or contact your administrator if the problem persists.</p>
+      <button mat-raised-button color="primary" (click)="loadExamData()">
+        <mat-icon>refresh</mat-icon>
+        Retry
+      </button>
+    </mat-card-content>
+  </mat-card>
+</div>
+
+<!-- Main exam layout -->
+<div *ngIf="!isLoading && exam && (sections.length > 0 || allQuestions.length > 0)" class="exam-layout">
+
+  <!-- Left panel: question navigation -->
+  <aside class="side-panel">
+    <div class="panel-header">
+      <h2 class="panel-title">{{ exam.examName }}</h2>
+      <p class="panel-subtitle">Exam Questions</p>
+    </div>
+
+    <!-- Section-based question navigation -->
+    <div class="panel-content sectioned-questions">
+      <ng-container *ngIf="getCurrentSection() as section">
+        <!-- Only show current section -->
+        <div class="question-section">
+          <h3 class="section-title">{{ section.name }} ({{ section.questions.length }})</h3>
+          <mat-grid-list cols="5" rowHeight="1:1" gutterSize="8px">
+            <mat-grid-tile *ngFor="let q of section.questions; let i = index">
+              <button
+                class="question-nav-btn"
+                [class.current]="getQuestionGlobalIndex(q) === currentQuestionIndex"
+                [class.answered]="isQuestionAnswered(q)"
+                [attr.aria-label]="'Go to question ' + (i + 1) + ' in section ' + section.name"
+                (click)="selectQuestionBySection(section.id, i)">
+                {{ i + 1 }}
+              </button>
+            </mat-grid-tile>
+          </mat-grid-list>
+        </div>
+      </ng-container>
+
+      <!-- If no sections are configured or no questions, you might want a fallback message -->
+      <div *ngIf="allQuestions.length === 0 && !isLoading" class="no-questions-message">
+        <mat-card class="info-card">
+          <mat-card-content>
+            <mat-icon class="info-icon">info_outline</mat-icon>
+            <h3>No Questions Available</h3>
+            <p>This exam doesn't have any questions configured yet.</p>
+            <p>Please contact your administrator to add questions to this exam.</p>
+          </mat-card-content>
+        </mat-card>
+      </div>
+    </div>
+
+    <div class="panel-footer">
+      <button mat-flat-button color="warn" class="finish-btn" (click)="submitExam(false)" [disabled]="isSubmitting">
+        <mat-icon>done_all</mat-icon> {{ isSubmitting ? 'Submitting...' : 'Finish & Submit' }}
+      </button>
+    </div>
+  </aside>
+
+  <!-- Main content -->
+  <main class="main-content">
+    <header class="main-header">
+      <!-- Section Navigation -->
+      <div class="section-nav">
+        <div class="section-info">
+          <span class="section-name">{{ getCurrentSection()?.name }}</span>
+          <span class="section-progress">
+            ({{ getCurrentSectionProgress().answered }} / {{ getCurrentSectionProgress().total }})
+          </span>
+        </div>
+        <div class="section-actions">
+          <button mat-flat-button color="primary" (click)="endSection(false)" [disabled]="isEndingSection">
+            <mat-icon>flag</mat-icon>
+            {{ isEndingSection ? 'Ending...' : 'End Section' }}
+          </button>
+          <button *ngIf="currentSectionIndex < sections.length - 1" mat-stroked-button (click)="nextSection()" [disabled]="!canGoToNextSection()">
+            Next Section
+            <mat-icon>chevron_right</mat-icon>
+          </button>
+        </div>
+      </div>
+
+      <!-- Question Counter (per-section) -->
+      <p class="question-counter">
+        Question {{ getCurrentSectionLocalIndex() + 1 }} of {{ getCurrentSection()?.questions?.length || 0 }}
+      </p>
+
+      <div class="timer">
+        <mat-icon>timer</mat-icon>
+        <span>{{ formatTime(currentSectionTimeLeft) }}</span>
+        <small class="section-timer-label">Section Timer</small>
+      </div>
+    </header>
+
+    <div class="question-area">
+      <mat-card class="question-card" *ngIf="currentQuestion">
+
+        <!-- MCQ Questions -->
+        <ng-container *ngIf="getQuestionType(currentQuestion) === 'MCQ'">
+          <mat-card-content>
+            <h3 class="question-text">{{ currentQuestion.questionText }}</h3>
+            <mat-radio-group
+              [(ngModel)]="mcqAnswers[currentQuestion.id]"
+              class="options-group"
+              [disabled]="isMcqAnswerLocked(currentQuestion.id)"
+>
+              <mat-radio-button
+                *ngFor="let opt of [currentQuestion.option1, currentQuestion.option2, currentQuestion.option3, currentQuestion.option4]"
+                [value]="opt"
+                class="option"
+                [class.locked]="isMcqAnswerLocked(currentQuestion.id)"
+                [disabled]="isMcqAnswerLocked(currentQuestion.id)"
+                (change)="handleMcqAnswer(currentQuestion.id, opt)">
+                {{ opt }}
+              </mat-radio-button>
+            </mat-radio-group>
+            <div class="question-actions">
+              <button mat-raised-button color="primary" class="next-question-btn" (click)="nextQuestion()" [disabled]="!canGoToNextQuestion()">
+                Next Question
+                <mat-icon>navigate_next</mat-icon>
+              </button>
+            </div>
+          </mat-card-content>
+        </ng-container>
+
+        <!-- CODING QUESTIONS SECTION -->
+        <ng-container *ngIf="getQuestionType(currentQuestion) === 'Coding'">
+          <mat-card-content>
+            <p class="coding-question-text">{{ currentQuestion.questionText }}</p>
+
+            <!-- HackerRank-like language dropdown -->
+            <div class="lang-selector" style="display:flex; gap:12px; align-items:center; margin-bottom:8px;">
+              <label for="langDd" style="font-weight:600;">Language:</label>
+              <select id="langDd" [(ngModel)]="selectedLanguage" (ngModelChange)="onTabChangeTabLabel({tab:{textLabel:$event}})" style="padding:6px 10px;">
+                <option value="java">Java (21)</option>
+                <option value="python">Python (3.11)</option>
+                <option value="c">C (GCC 12)</option>
+              </select>
+            </div>
+
+            <!-- Single editor switches by language -->
+            <div *ngIf="currentQuestion && codingAnswers[currentQuestion.id]">
+              <app-codemirror-editor
+                style="height: 300px; border: 1px solid #ccc; border-radius: 4px; overflow: hidden;"
+                [initialCode]="codingAnswers[currentQuestion.id][selectedLanguage] || (currentQuestion.boilerplateCode ? currentQuestion.boilerplateCode[selectedLanguage] : '')"
+                [language]="selectedLanguage"
+                (codeChange)="onCodeChange(selectedLanguage, $event)">
+              </app-codemirror-editor>
+            </div>
+
+            <!-- Visible sample test cases like HackerRank -->
+            <div *ngIf="currentQuestion?.parsedTestCases?.length" class="testcases" style="margin-top:12px;">
+              <h4 style="margin:4px 0;">Sample Test Cases</h4>
+              <div *ngFor="let tc of currentQuestion.parsedTestCases; let i = index" class="tc" style="border:1px solid #e0e0e0; border-radius:6px; margin-top:8px;">
+                <div style="background:#f7f7f7; padding:6px 10px; font-weight:600;">Test Case {{i+1}}</div>
+                <div style="display:flex; gap:12px; padding:10px;">
+                  <div style="flex:1;">
+                    <div style="font-size:12px; color:#666;">Input (stdin)</div>
+                    <pre style="margin:6px 0; white-space:pre-wrap;">{{formatTestCaseInput(tc)}}</pre>
+                  </div>
+                  <div style="flex:1;">
+                    <div style="font-size:12px; color:#666;">Expected Output</div>
+                    <pre style="margin:6px 0; white-space:pre-wrap;">{{formatTestCaseOutput(tc)}}</pre>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="run-panel">
+              <mat-form-field appearance="outline" class="stdin-field">
+                <mat-label>Program Input (stdin)</mat-label>
+                <textarea matInput rows="4" [(ngModel)]="programInput" placeholder="Optional input for your program"></textarea>
+              </mat-form-field>
+
+              <div class="run-actions">
+                <button mat-raised-button color="primary"
+                        (click)="runCode(currentQuestion.id, selectedLanguage)"
+                        [disabled]="isRunning">
+                  <mat-icon>play_arrow</mat-icon>
+                  {{ isRunning ? 'Running...' : 'Run (' + selectedLanguage + ')' }}
+                </button>
+                <button mat-raised-button color="accent"
+                        (click)="submitCode(currentQuestion.id, selectedLanguage)"
+                        [disabled]="isRunning">
+                  <mat-icon>send</mat-icon>
+                  {{ isRunning ? 'Submitting...' : 'Submit (' + selectedLanguage + ')' }}
+                </button>
+                <mat-spinner *ngIf="isRunning" diameter="22"></mat-spinner>
+              </div>
+
+              <div class="output-block" *ngIf="executionResults[currentQuestion.id]">
+                <h4>Output</h4>
+                <pre>{{ executionResults[currentQuestion.id] }}</pre>
+              </div>
+
+              <!-- Per test-case feedback after Submit -->
+              <div *ngIf="submissionResult?.results?.length" class="judge-results" style="margin-top:10px;">
+                <h4>Test Case Results</h4>
+                <div *ngFor="let r of submissionResult.results" style="border:1px solid #e0e0e0; border-radius:6px; margin-top:8px;">
+                  <div style="display:flex; justify-content:space-between; padding:6px 10px; background:#f7f7f7;">
+                    <div>Test Case {{ r.testCase }}</div>
+                    <div [style.color]="r.status === 'Passed' ? 'green' : (r.status === 'Wrong Answer' ? '#d32f2f' : '#f57c00')">
+                      {{ r.status }}
+                    </div>
+                  </div>
+                  <div *ngIf="r.input !== undefined" style="padding:8px 10px;">
+                    <div style="font-size:12px; color:#666;">Input</div>
+                    <pre style="white-space:pre-wrap;">{{ r.input }}</pre>
+                  </div>
+                  <div *ngIf="r.yourOutput !== undefined" style="padding:0 10px 8px 10px;">
+                    <div style="font-size:12px; color:#666;">Your Output</div>
+                    <pre style="white-space:pre-wrap;">{{ r.yourOutput }}</pre>
+                    <div style="font-size:12px; color:#666;">Expected Output</div>
+                    <pre style="white-space:pre-wrap;">{{ r.expectedOutput }}</pre>
+                  </div>
+                  <div *ngIf="r.details" style="padding:8px 10px; font-size:12px; color:#555;">
+                    Details: {{ r.details }}
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="question-actions">
+              <button mat-raised-button color="primary" class="next-question-btn" (click)="nextQuestion()" [disabled]="!canGoToNextQuestion()">
+                Next Question
+                <mat-icon>navigate_next</mat-icon>
+              </button>
+            </div>
+          </mat-card-content>
+        </ng-container>
+
+        <!-- SQL QUESTIONS SECTION -->
+        <ng-container *ngIf="getQuestionType(currentQuestion) === 'SQL'">
+          <mat-card-content>
+            <p class="coding-question-text">{{ currentQuestion.questionText }}</p>
+
+            <div>
+              <app-codemirror-editor
+                style="height: 300px; border: 1px solid #ccc; border-radius: 4px; overflow: hidden;"
+                [initialCode]="codingAnswers[currentQuestion.id]['sql']"
+                language="sql"
+                (codeChange)="onCodeChange('sql', $event)">
+              </app-codemirror-editor>
+            </div>
+
+            <div class="run-panel">
+              <button mat-raised-button color="primary" (click)="runSql(currentQuestion.id)" [disabled]="isRunning">
+                <mat-icon>play_arrow</mat-icon>
+                {{ isRunning ? 'Running...' : 'Run SQL' }}
+              </button>
+              <button mat-raised-button color="accent" (click)="submitSql(currentQuestion.id)" [disabled]="isRunning" style="margin-left:8px;">
+                <mat-icon>send</mat-icon>
+                {{ isRunning ? 'Submitting...' : 'Submit SQL' }}
+              </button>
+              <mat-spinner *ngIf="isRunning" diameter="22" style="margin-left:8px;"></mat-spinner>
+
+              <div class="output-block" *ngIf="executionResults[currentQuestion.id]">
+                <h4>Result</h4>
+                <pre>{{ executionResults[currentQuestion.id] }}</pre>
+              </div>
+
+              <!-- Per test-case feedback after Submit (SQL) -->
+              <div *ngIf="submissionResult?.results?.length" class="judge-results" style="margin-top:10px;">
+                <h4>Test Case Results</h4>
+                <div *ngFor="let r of submissionResult.results" style="border:1px solid #e0e0e0; border-radius:6px; margin-top:8px;">
+                  <div style="display:flex; justify-content:space-between; padding:6px 10px; background:#f7f7f7;">
+                    <div>Test Case {{ r.testCase }}</div>
+                    <div [style.color]="r.status === 'Passed' ? 'green' : (r.status === 'Wrong Answer' ? '#d32f2f' : '#f57c00')">
+                      {{ r.status }}
+                    </div>
+                  </div>
+                  <div *ngIf="r.yourOutput !== undefined" style="padding:8px 10px;">
+                    <div style="font-size:12px; color:#666;">Your Output</div>
+                    <pre style="white-space:pre-wrap;">{{ r.yourOutput }}</pre>
+                    <div style="font-size:12px; color:#666;">Expected Output</div>
+                    <pre style="white-space:pre-wrap;">{{ r.expectedOutput }}</pre>
+                  </div>
+                  <div *ngIf="r.details" style="padding:8px 10px; font-size:12px; color:#555;">
+                    Details: {{ r.details }}
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="question-actions">
+              <button mat-raised-button color="primary" class="next-question-btn" (click)="nextQuestion()" [disabled]="!canGoToNextQuestion()">
+                Next Question
+                <mat-icon>navigate_next</mat-icon>
+              </button>
+            </div>
+          </mat-card-content>
+        </ng-container>
+
+      </mat-card>
+    </div>
+  </main>
+</div>

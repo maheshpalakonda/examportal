@@ -1,0 +1,55 @@
+.custom-toolbar {
+  background-color: #fff;
+  color: #000;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  z-index: 1000;
+  margin-top: 0;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  padding: 0 32px;
+  min-height: 90px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.04);
+}
+
+body, html {
+  padding-top: 80px;  /* adjust height of navbar */
+}
+
+.toolbar-logo {
+  margin-right: 36px;
+  border-radius: 6px;
+  background: #fff;
+  padding: 3px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  height: 60px;
+  transition: height 0.3s, margin-right 0.3s;
+}
+
+.nav-button {
+  color: #000;
+  margin-left: 16px;
+  font-weight: 500;
+}
+
+.nav-button:hover {
+  background-color: rgba(0,0,0,0.1);
+}
+
+@media (max-width: 800px) {
+  .custom-toolbar {
+    min-height: 64px;
+    padding: 0 18px;
+  }
+  .toolbar-logo {
+    margin-right: 20px;
+    height: 40px;
+  }
+  .nav-button {
+    font-size: 14px;
+    margin-left: 8px;
+  }
+}

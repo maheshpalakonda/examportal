@@ -1,0 +1,38 @@
+<div class="container">
+  <mat-card *ngIf="result">
+    <mat-card-header>
+      <mat-card-title>Exam Completed!</mat-card-title>
+      <!-- <mat-card-subtitle *ngIf="!isAdmin">Thank you for taking the assessment.</mat-card-subtitle> -->
+      <mat-card-subtitle *ngIf="isAdmin">Admin View - Exam Results</mat-card-subtitle>
+    </mat-card-header>
+    <mat-card-content>
+      <div *ngIf="!isAdmin">
+        <p>      <br>
+Thank you for submitting the exam. If you are qualified, our team will contact you.</p>
+        <p>Your results have been submitted successfully.</p>
+        <a href="https://apicalsoftsolutions.com/" target="_blank" rel="noopener"> apicalsoftsolutions.com<br></a>
+        <a href="https://www.linkedin.com/company/apical-soft-solutions/" target="_blank" rel="noopener"><br>Follow us on LinkedIn</a>
+
+      </div>
+      <div *ngIf="isAdmin">
+        <h2>Student Score</h2>
+        <p class="score">
+          {{ result.score || 0 }} / {{ result.totalMarks || result.totalQuestions || 0 }}
+        </p>
+        <p>The student's results have been recorded in the system.</p>
+      </div>
+    </mat-card-content>
+  </mat-card>
+
+  <!-- Debug information (remove this after testing) -->
+  <mat-card *ngIf="!result" style="margin-top: 20px;">
+    <mat-card-header>
+      <mat-card-title>Debug Information</mat-card-title>
+    </mat-card-header>
+    <mat-card-content>
+      <p><strong>No result data found.</strong></p>
+      <p>Check the browser console for more details.</p>
+      <p>Make sure you completed an exam and were redirected here properly.</p>
+    </mat-card-content>
+  </mat-card>
+</div>

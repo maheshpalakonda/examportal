@@ -1,0 +1,24 @@
+<div class="container">
+  <div class="logo-container">
+    <img src="assets/images/aptical.jpg" alt="Aptical Logo" class="logo">
+  </div>
+  <mat-card>
+    <mat-card-header>
+      <mat-card-title>Administrator Login</mat-card-title>
+    </mat-card-header>
+    <mat-card-content>
+      <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
+        <mat-form-field appearance="outline">
+          <mat-label>Username</mat-label>
+          <input matInput formControlName="username">
+        </mat-form-field>
+        <mat-form-field appearance="outline">
+          <mat-label>Password</mat-label>
+          <input matInput formControlName="password" type="password">
+        </mat-form-field>
+        <p *ngIf="errorMessage" class="error">{{ errorMessage }}</p>
+        <button mat-raised-button color="primary" type="submit">Login</button>
+      </form>
+    </mat-card-content>
+  </mat-card>
+</div>

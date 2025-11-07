@@ -1,0 +1,421 @@
+<mat-sidenav-container class="dashboard-container">
+  <!-- ========================== -->
+  <!--      Side Navigation       -->
+  <!-- ========================== -->
+  <mat-sidenav mode="side" opened class="sidenav">
+    <mat-toolbar>
+      <mat-icon>admin_panel_settings</mat-icon>
+      <span>Admin Panel</span>
+    </mat-toolbar>
+
+    <mat-nav-list>
+      <a mat-list-item (click)="setActiveTab('students')" [class.active-link]="activeTab === 'students'">
+        <mat-icon matListItemIcon>group</mat-icon>
+        <span matListItemTitle>Students</span>
+      </a>
+      <a mat-list-item (click)="setActiveTab('questions')" [class.active-link]="activeTab === 'questions'">
+        <mat-icon matListItemIcon>quiz</mat-icon>
+        <span matListItemTitle>Question Bank</span>
+      </a>
+      <a mat-list-item (click)="setActiveTab('exams')" [class.active-link]="activeTab === 'exams'">
+        <mat-icon matListItemIcon>assignment</mat-icon>
+        <span matListItemTitle>Rounds</span> <!-- CHANGED -->
+      </a>
+      <a mat-list-item (click)="setActiveTab('sections')" [class.active-link]="activeTab === 'sections'">
+        <mat-icon matListItemIcon>view_module</mat-icon>
+        <span matListItemTitle>Sections</span>
+      </a>
+      <a mat-list-item (click)="setActiveTab('results')" [class.active-link]="activeTab === 'results'">
+        <mat-icon matListItemIcon>leaderboard</mat-icon>
+        <span matListItemTitle>Results</span>
+      </a>
+
+
+    </mat-nav-list>
+
+    <button mat-flat-button color="warn" class="logout-btn" (click)="logout()">
+      <mat-icon>logout</mat-icon>
+      Logout
+    </button>
+  </mat-sidenav>
+
+  <!-- ========================== -->
+  <!--      Main Content          -->
+  <!-- ========================== -->
+  <mat-sidenav-content class="main-content">
+
+    <!-- Student Roster View -->
+    <div *ngIf="activeTab === 'students'">
+      <div class="content-header">
+        <h1>Student Management</h1>
+        <p>Total Registered Students: {{ students.length }}</p>
+      </div>
+      <div class="table-wrapper">
+        <table mat-table [dataSource]="students">
+          <ng-container matColumnDef="name"><th mat-header-cell *matHeaderCellDef>Name</th><td mat-cell *matCellDef="let s">{{s.name}}</td></ng-container>
+          <ng-container matColumnDef="hallTicketNumber"><th mat-header-cell *matHeaderCellDef>Hall Ticket</th><td mat-cell *matCellDef="let s">{{s.hallTicketNumber}}</td></ng-container>
+          <ng-container matColumnDef="email"><th mat-header-cell *matHeaderCellDef>Email</th><td mat-cell *matCellDef="let s">{{s.email}}</td></ng-container>
+          <ng-container matColumnDef="branch"><th mat-header-cell *matHeaderCellDef>Branch</th><td mat-cell *matCellDef="let s">{{s.branch}}</td></ng-container>
+          <ng-container matColumnDef="cgpa"><th mat-header-cell *matHeaderCellDef>CGPA</th><td mat-cell *matCellDef="let s">{{s.cgpa}}</td></ng-container>
+          <tr mat-header-row *matHeaderRowDef="studentColumns"></tr>
+          <tr mat-row *matRowDef="let row; columns: studentColumns;"></tr>
+        </table>
+      </div>
+    </div>
+
+    <!-- Question Bank View -->
+    <!-- Replace the entire question form section with this -->
+<div *ngIf="activeTab === 'questions'" class="page-layout">
+ 
+      
+
+  <mat-card class="form-card">
+    <mat-card-header>
+      <mat-card-title>{{ isEditingQuestion ? 'Edit Question' : 'Add New Question' }}</mat-card-title>
+    </mat-card-header>
+    <mat-card-content>
+      <form [formGroup]="questionForm" (ngSubmit)="submitQuestion()" class="data-form">
+        <mat-form-field appearance="outline">
+          <mat-label>Question / Problem</mat-label>
+          <textarea matInput formControlName="questionText" rows="4" required></textarea>
+        </mat-form-field>
+        
+        <mat-form-field appearance="outline">
+          <mat-label>Section</mat-label>
+          <mat-select formControlName="section" required>
+            <mat-option *ngFor="let section of sections" [value]="section">
+              {{section.name}}
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <mat-checkbox formControlName="isCodingQuestion">This is a coding question</mat-checkbox>
+
+        <mat-checkbox formControlName="isSqlQuestion">This is an SQL question</mat-checkbox>
+
+        <!-- Show coding fields for 'Coding' section or when checkbox is ticked -->
+        <ng-container *ngIf="questionForm.get('isCodingQuestion')?.value || questionForm.get('section')?.value?.name?.toLowerCase() === 'coding'">
+          <mat-form-field appearance="outline">
+            <mat-label>Boilerplate Code (Java)</mat-label>
+            <textarea matInput formControlName="boilerplateJava" rows="5"></textarea>
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>Boilerplate Code (Python)</mat-label>
+            <textarea matInput formControlName="boilerplatePython" rows="5"></textarea>
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>Boilerplate Code (C)</mat-label>
+            <textarea matInput formControlName="boilerplateC" rows="5"></textarea>
+          </mat-form-field>
+        </ng-container>
+
+        <!-- Show SQL fields for 'SQL' section or when checkbox is ticked -->
+        <ng-container *ngIf="questionForm.get('isSqlQuestion')?.value || questionForm.get('section')?.value?.name?.toLowerCase() === 'sql'">
+          <mat-form-field appearance="outline">
+            <mat-label>Setup SQL (per-question dataset)</mat-label>
+            <textarea matInput formControlName="setupSql" rows="6" placeholder="CREATE TABLE ...; INSERT INTO ...;"></textarea>
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>Boilerplate Code (SQL)</mat-label>
+            <textarea matInput formControlName="boilerplateSql" rows="4" placeholder="-- Students write only SELECT here (optional placeholder)"></textarea>
+          </mat-form-field>
+        </ng-container>
+
+        <!-- Common fields for Coding and SQL -->
+        <ng-container *ngIf="questionForm.get('isCodingQuestion')?.value || questionForm.get('section')?.value?.name?.toLowerCase() === 'coding' || questionForm.get('section')?.value?.name?.toLowerCase() === 'sql'">
+          <mat-form-field appearance="outline">
+            <mat-label>Test Cases (JSON)</mat-label>
+            <textarea matInput formControlName="testCases" rows="5" placeholder='[{"col":"val"}] or {"expected": [...]}'></textarea>
+          </mat-form-field>
+        </ng-container>
+
+        <!-- Show MCQ fields for non-coding sections -->
+        <ng-container *ngIf="!(questionForm.get('isCodingQuestion')?.value || questionForm.get('isSqlQuestion')?.value || questionForm.get('section')?.value?.name === 'Coding' || questionForm.get('section')?.value?.name === 'SQL')">
+          <div class="options-grid">
+            <mat-form-field appearance="outline"><mat-label>Option 1</mat-label><input matInput formControlName="option1" required></mat-form-field>
+            <mat-form-field appearance="outline"><mat-label>Option 2</mat-label><input matInput formControlName="option2" required></mat-form-field>
+            <mat-form-field appearance="outline"><mat-label>Option 3</mat-label><input matInput formControlName="option3"></mat-form-field>
+            <mat-form-field appearance="outline"><mat-label>Option 4</mat-label><input matInput formControlName="option4"></mat-form-field>
+          </div>
+          <mat-form-field appearance="outline">
+            <mat-label>Correct Answer</mat-label>
+            <input matInput formControlName="correctAnswer" required>
+          </mat-form-field>
+        </ng-container>
+        
+        <div class="form-actions">
+          <button mat-raised-button color="primary" type="submit" [disabled]="questionForm.invalid">
+            {{ isEditingQuestion ? 'Update Question' : 'Add Question' }}
+          </button>
+          <button mat-button type="button" *ngIf="isEditingQuestion" (click)="cancelEdit()">Cancel</button>
+        </div>
+      </form>
+    </mat-card-content>
+  </mat-card>
+  
+      <div class="table-wrapper">
+        <table mat-table [dataSource]="questions">
+          <ng-container matColumnDef="section"><th mat-header-cell *matHeaderCellDef>Section</th><td mat-cell *matCellDef="let q">{{q.section?.name || q.category}}</td></ng-container>
+          <ng-container matColumnDef="questionText"><th mat-header-cell *matHeaderCellDef>Question</th><td mat-cell *matCellDef="let q" class="question-text">{{q.questionText}}</td></ng-container>
+          <ng-container matColumnDef="actions"><th mat-header-cell *matHeaderCellDef>Actions</th><td mat-cell *matCellDef="let q">
+            <button mat-icon-button color="primary" (click)="startEditQuestion(q)"><mat-icon>edit</mat-icon></button>
+            <button mat-icon-button color="warn" (click)="deleteQuestion(q.id)"><mat-icon>delete</mat-icon></button>
+          </td></ng-container>
+          <tr mat-header-row *matHeaderRowDef="questionColumns"></tr>
+          <tr mat-row *matRowDef="let row; columns: questionColumns;"></tr>
+        </table>
+      </div>
+</div>
+    <!-- Round Management View -->
+    <div *ngIf="activeTab === 'exams'" class="page-layout">
+        <mat-card class="form-card">
+          <mat-card-header><mat-card-title>{{ isEditingExam ? 'Edit Round' : 'Create New Round' }}</mat-card-title></mat-card-header>
+          <mat-card-content>
+            <form [formGroup]="examForm" (ngSubmit)="submitExam()" class="data-form">
+              <mat-form-field appearance="outline">
+                <mat-label>Round Name</mat-label>
+                <input matInput formControlName="examName" required>
+              </mat-form-field>
+
+              <div class="sections-selection">
+                <h3>Select Sections for this Round:</h3>
+                <div class="sections-grid">
+                  <mat-checkbox
+                    *ngFor="let section of sections"
+                    [checked]="isSectionSelected(section)"
+                    (change)="onSectionSelectionChange($event, section)">
+                    {{section.name}} ({{section.durationInMinutes}} min)
+                  </mat-checkbox>
+                </div>
+              </div>
+
+              <div class="form-actions">
+                <button mat-raised-button color="primary" type="submit" [disabled]="examForm.invalid || selectedSections.length === 0">
+                  {{ isEditingExam ? 'Update Round' : 'Create Round' }}
+                </button>
+                <button mat-button *ngIf="isEditingExam" (click)="cancelEditExam()">Cancel</button>
+              </div>
+            </form>
+          </mat-card-content>
+        </mat-card>
+        
+        <div class="table-wrapper">
+          <table mat-table [dataSource]="exams">
+            <ng-container matColumnDef="examName">
+              <th mat-header-cell *matHeaderCellDef>Round Name</th>
+              <td mat-cell *matCellDef="let e">{{e.examName}}</td>
+            </ng-container>
+            <ng-container matColumnDef="sections">
+              <th mat-header-cell *matHeaderCellDef>Sections</th>
+              <td mat-cell *matCellDef="let e" class="sections-cell">
+                <span *ngFor="let section of e.sections; let last = last">
+                  {{section.name}}<span *ngIf="!last">, </span>
+                </span>
+                <span *ngIf="!e.sections || e.sections.length === 0" class="no-sections">No sections assigned</span>
+              </td>
+            </ng-container>
+            <ng-container matColumnDef="isActive">
+              <th mat-header-cell *matHeaderCellDef>Status</th>
+              <td mat-cell *matCellDef="let e" class="status-cell">
+                <mat-slide-toggle [checked]="e.isActive" (change)="updateExamStatus(e, $event)" [disabled]="isUpdating" class="status-toggle"></mat-slide-toggle>
+              </td>
+            </ng-container>
+            <ng-container matColumnDef="actions">
+              <th mat-header-cell *matHeaderCellDef>Actions</th>
+              <td mat-cell *matCellDef="let e">
+                <button mat-icon-button color="primary" (click)="editExamSections(e)" title="Edit Round">
+                  <mat-icon>edit</mat-icon>
+                </button>
+                <button mat-icon-button color="warn" (click)="deleteExam(e)" title="Delete Round">
+                  <mat-icon>delete</mat-icon>
+                </button>
+              </td>
+            </ng-container>
+            <tr mat-header-row *matHeaderRowDef="examColumns"></tr>
+            <tr mat-row *matRowDef="let row; columns: examColumns;"></tr>
+          </table>
+        </div>
+    </div>
+    
+    <!-- Sections Management View -->
+    <div *ngIf="activeTab === 'sections'" class="page-layout">
+      <mat-card class="form-card">
+        <mat-card-header>
+          <mat-card-title>{{ isEditingSection ? 'Edit Section' : 'Add New Section' }}</mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          <form [formGroup]="sectionForm" (ngSubmit)="submitSection()" class="data-form">
+            <mat-form-field appearance="outline">
+              <mat-label>Section Name</mat-label>
+              <input matInput formControlName="name" required placeholder="e.g., Technical, Aptitude, Coding">
+            </mat-form-field>
+            
+            <mat-form-field appearance="outline">
+              <mat-label>Duration (Minutes)</mat-label>
+              <input matInput type="number" formControlName="durationInMinutes" required min="1">
+            </mat-form-field>
+            
+            <mat-form-field appearance="outline">
+              <mat-label>Order Index</mat-label>
+              <input matInput type="number" formControlName="orderIndex" required min="1">
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+              <mat-label>Marks</mat-label>
+              <input matInput type="number" formControlName="marks" required min="0">
+            </mat-form-field>
+
+            <mat-checkbox formControlName="hasMinPassMarks">Require minimum pass marks for this section</mat-checkbox>
+
+            <mat-form-field appearance="outline" *ngIf="sectionForm.get('hasMinPassMarks')?.value">
+              <mat-label>Minimum Pass Marks</mat-label>
+              <input matInput type="number" formControlName="minPassMarks" required min="0">
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+              <mat-label>Number of Questions to Select (optional)</mat-label>
+              <input matInput type="number" formControlName="numQuestionsToSelect" min="1" placeholder="Leave empty to use all questions">
+            </mat-form-field>
+
+            <div class="form-actions">
+              <button mat-raised-button color="primary" type="submit" [disabled]="sectionForm.invalid">
+                {{ isEditingSection ? 'Update Section' : 'Add Section' }}
+              </button>
+              <button mat-button type="button" *ngIf="isEditingSection" (click)="cancelSectionEdit()">Cancel</button>
+            </div>
+          </form>
+        </mat-card-content>
+      </mat-card>
+      
+      <div class="table-wrapper">
+        <table mat-table [dataSource]="sections">
+          <ng-container matColumnDef="name">
+            <th mat-header-cell *matHeaderCellDef>Section Name</th>
+            <td mat-cell *matCellDef="let s">{{s.name}}</td>
+          </ng-container>
+          <ng-container matColumnDef="durationInMinutes">
+            <th mat-header-cell *matHeaderCellDef>Duration (Minutes)</th>
+            <td mat-cell *matCellDef="let s">{{s.durationInMinutes}}</td>
+          </ng-container>
+          <ng-container matColumnDef="orderIndex">
+            <th mat-header-cell *matHeaderCellDef>Order</th>
+            <td mat-cell *matCellDef="let s">{{s.orderIndex}}</td>
+          </ng-container>
+          <ng-container matColumnDef="actions">
+            <th mat-header-cell *matHeaderCellDef>Actions</th>
+            <td mat-cell *matCellDef="let s">
+              <button mat-icon-button color="primary" (click)="startEditSection(s)">
+                <mat-icon>edit</mat-icon>
+              </button>
+              <button mat-icon-button color="warn" (click)="deleteSection(s.id!)">
+                <mat-icon>delete</mat-icon>
+              </button>
+            </td>
+          </ng-container>
+          <tr mat-header-row *matHeaderRowDef="sectionColumns"></tr>
+          <tr mat-row *matRowDef="let row; columns: sectionColumns;"></tr>
+        </table>
+      </div>
+    </div>
+
+    <!-- Results View -->
+    <div *ngIf="activeTab === 'results'">
+       <div class="content-header">
+        <h1>Exam Results</h1>
+      </div>
+
+      <!-- Filter Section -->
+      <mat-card class="filter-card">
+        <mat-card-content>
+          <div class="filter-row">
+            <mat-form-field appearance="outline">
+              <mat-label>Select Exam</mat-label>
+              <mat-select [(ngModel)]="selectedExamId" (selectionChange)="onExamChange($event.value)">
+                <mat-option [value]="null">All Exams</mat-option>
+                <mat-option *ngFor="let exam of exams" [value]="exam.id">{{exam.examName}}</mat-option>
+              </mat-select>
+            </mat-form-field>
+
+            <mat-checkbox [(ngModel)]="showOnlyPassed" (change)="applyFilters()">Show only passed students</mat-checkbox>
+
+            <mat-form-field appearance="outline" style="width: 200px;">
+              <mat-label>Min Total Score</mat-label>
+              <input matInput type="number" [(ngModel)]="minTotalScore" (input)="applyFilters()" min="0" placeholder="e.g., 80">
+            </mat-form-field>
+
+            <button mat-raised-button color="accent" (click)="clearFilters()">Clear Filters</button>
+          </div>
+
+          <div *ngIf="selectedExamSections.length > 0" class="sections-filter">
+            <h3>Minimum Marks per Section:</h3>
+            <div class="sections-grid">
+              <mat-form-field appearance="outline" *ngFor="let section of selectedExamSections">
+                <mat-label>{{section.name}} (Min: {{section.hasMinPassMarks ? section.minPassMarks : 0}})</mat-label>
+                <input matInput type="number" [value]="sectionMinMarks.get(section.id) || 0" (input)="onSectionMinMarksChange(section.id, $any($event.target).value)">
+              </mat-form-field>
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      <div class="table-wrapper">
+        <table mat-table [dataSource]="filteredResults">
+          <ng-container matColumnDef="studentName"><th mat-header-cell *matHeaderCellDef>Student Name</th><td mat-cell *matCellDef="let r">{{r.studentName}}</td></ng-container>
+          <ng-container matColumnDef="studentEmail"><th mat-header-cell *matHeaderCellDef>Student Email</th><td mat-cell *matCellDef="let r">{{r.studentEmail}}</td></ng-container>
+          <ng-container matColumnDef="examId"><th mat-header-cell *matHeaderCellDef>Round ID</th><td mat-cell *matCellDef="let r">{{r.examId}}</td></ng-container>
+          <ng-container matColumnDef="score"><th mat-header-cell *matHeaderCellDef>Score</th><td mat-cell *matCellDef="let r">{{r.score}} / {{r.totalMarks || r.totalQuestions}}</td></ng-container>
+          <ng-container matColumnDef="totalQuestions"><th mat-header-cell *matHeaderCellDef>Total Questions</th><td mat-cell *matCellDef="let r">{{r.totalQuestions}}</td></ng-container>
+          <ng-container matColumnDef="examDate"><th mat-header-cell *matHeaderCellDef>Date Taken</th><td mat-cell *matCellDef="let r">{{r.examDate | date:'medium'}}</td></ng-container>
+          <ng-container matColumnDef="actions"><th mat-header-cell *matHeaderCellDef>Actions</th><td mat-cell *matCellDef="let r">
+            <button mat-raised-button color="primary" (click)="viewDetailedResult(r)">
+              <mat-icon>visibility</mat-icon>
+              Details
+            </button>
+          </td></ng-container>
+          <tr mat-header-row *matHeaderRowDef="resultColumns"></tr>
+          <tr mat-row *matRowDef="let row; columns: resultColumns;"></tr>
+        </table>
+      </div>
+
+      <!-- Detailed Result View -->
+      <div *ngIf="detailedResult" class="detailed-result-view">
+        <mat-card>
+          <mat-card-header>
+            <mat-card-title>Detailed Result for {{ detailedResult.studentEmail }}</mat-card-title>
+            <mat-card-subtitle>{{ detailedResult.examName }} - Submitted on {{ detailedResult.examDate | date:'medium' }}</mat-card-subtitle>
+          </mat-card-header>
+          <mat-card-content>
+            <div class="result-summary">
+              <p><strong>Total Score:</strong> {{ detailedResult.totalScore }} / {{ detailedResult.totalMarks || detailedResult.totalQuestions }}</p>
+            </div>
+            <h3>Section-wise Breakdown:</h3>
+            <table mat-table [dataSource]="detailedResult.sectionResults" class="section-table">
+              <ng-container matColumnDef="sectionName">
+                <th mat-header-cell *matHeaderCellDef>Section</th>
+                <td mat-cell *matCellDef="let s">{{ s.sectionName }}</td>
+              </ng-container>
+              <ng-container matColumnDef="score">
+                <th mat-header-cell *matHeaderCellDef>Score</th>
+                <td mat-cell *matCellDef="let s">{{ s.score }} / {{ s.marks || s.total }}</td>
+              </ng-container>
+              <ng-container matColumnDef="marks">
+                <th mat-header-cell *matHeaderCellDef>Marks</th>
+                <td mat-cell *matCellDef="let s">{{ s.marks }}</td>
+              </ng-container>
+              <tr mat-header-row *matHeaderRowDef="['sectionName', 'score', 'marks']"></tr>
+              <tr mat-row *matRowDef="let row; columns: ['sectionName', 'score', 'marks'];"></tr>
+            </table>
+          </mat-card-content>
+          <mat-card-actions>
+            <button mat-button (click)="closeDetailedResult()">Close</button>
+          </mat-card-actions>
+        </mat-card>
+      </div>
+    </div>
+
+
+
+
+
+  </mat-sidenav-content>
+</mat-sidenav-container>

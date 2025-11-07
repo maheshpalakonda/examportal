@@ -1,0 +1,164 @@
+<section class="hero-section">
+
+  <!-- <div class="hero-content">
+    <div class="info-panel">
+      <h2 class="title">Apical Soft Graduate Hiring Challenge 2025</h2>
+      <p class="sub">Exclusive online assessment for top final year tech talent.</p>
+
+      <ul class="points">
+        <li>Aptitude & Logical Reasoning</li>
+        <li>Coding + SQL Challenge</li>
+        <li>Communication & Interview Readiness</li>
+      </ul>
+    </div> -->
+
+    <div class="hero-content">
+    <div class="info-panel">
+  <h2 class="title">Apical Soft Graduate Hiring Challenge 2025</h2>
+  <p class="sub">
+    Fuel your tech career with India’s fastest-moving assessment platform by Apical Soft.
+  </p>
+  <ul class="points">
+    <li>End-to-end digital experiences in mobile, web & enterprise platforms.</li>
+    <li>Innovative coding & SQL challenges powered by our “technology at its core” ethos.</li>
+    <li>Agile evaluation, live feedback and pathways to real-world placement.</li>
+    <li>Join a team rooted in excellence, creativity & collaboration — our core values.</li>
+    <li>Become part of a fast-growing Hyderabad-based tech firm, building impactful solutions since 2017.</li>
+  </ul>
+</div>
+    
+
+
+    <div class="login-box">
+      <mat-card>
+        <mat-card-header>
+          <mat-card-title>Student Registration</mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          <form [formGroup]="registrationForm" (ngSubmit)="onSubmit()" class="animated-form">
+            <div class="form-grid">
+              <div class="form-field animate-field" style="animation-delay: 0.1s">
+                <mat-form-field appearance="outline" class="animated-mat-field">
+                  <mat-label>Full Name</mat-label>
+                  <input matInput formControlName="name" placeholder="As per college records">
+                </mat-form-field>
+                <div class="error animate-error" *ngIf="registrationForm.get('name')?.invalid && registrationForm.get('name')?.touched">
+                  Full Name is required and must be at least 2 characters.
+                </div>
+              </div>
+
+              <div class="form-field animate-field" style="animation-delay: 0.2s">
+                <mat-form-field appearance="outline" class="animated-mat-field">
+                  <mat-label>Hall Ticket Number</mat-label>
+                  <input matInput formControlName="hallTicketNumber" placeholder="Unique College ID">
+                </mat-form-field>
+                <div class="error animate-error" *ngIf="registrationForm.get('hallTicketNumber')?.invalid && registrationForm.get('hallTicketNumber')?.touched">
+                  Hall Ticket Number is required and must be alphanumeric.
+                </div>
+              </div>
+
+              <div class="form-field animate-field" style="animation-delay: 0.3s">
+                <mat-form-field appearance="outline" class="animated-mat-field">
+                  <mat-label>Email (Primary Contact)</mat-label>
+                  <input matInput formControlName="email" type="email" placeholder="Professional email address">
+                </mat-form-field>
+                <div class="error animate-error" *ngIf="registrationForm.get('email')?.invalid && registrationForm.get('email')?.touched">
+                  Valid email is required.
+                </div>
+              </div>
+
+              <div class="form-field animate-field" style="animation-delay: 0.4s">
+                <mat-form-field appearance="outline" class="animated-mat-field">
+                  <mat-label>Mobile Number</mat-label>
+                  <input matInput formControlName="mobileNumber" type="tel" placeholder="10-digit mobile number">
+                </mat-form-field>
+                <div class="error animate-error" *ngIf="registrationForm.get('mobileNumber')?.invalid && registrationForm.get('mobileNumber')?.touched">
+                  Mobile Number must be 10 digits.
+                </div>
+              </div>
+
+              <div class="form-field animate-field" style="animation-delay: 0.5s">
+                <mat-form-field appearance="outline" class="animated-mat-field">
+                  <mat-label>College Name</mat-label>
+                  <input matInput formControlName="collegeName" placeholder="Enter your college name">
+                </mat-form-field>
+                <div class="error animate-error" *ngIf="registrationForm.get('collegeName')?.invalid && registrationForm.get('collegeName')?.touched">
+                  College Name is required.
+                </div>
+              </div>
+
+              <div class="form-field animate-field" style="animation-delay: 0.6s">
+                <mat-form-field appearance="outline" class="animated-mat-field">
+                  <mat-label>Choose Primary Branch</mat-label>
+                  <mat-select formControlName="branch">
+                    <mat-option value="">Select Branch</mat-option>
+                    <mat-option *ngFor="let branch of branches" [value]="branch.value">{{ branch.label }}</mat-option>
+                  </mat-select>
+                </mat-form-field>
+                <div class="error animate-error" *ngIf="registrationForm.get('branch')?.invalid && registrationForm.get('branch')?.touched">
+                  Branch selection is required.
+                </div>
+              </div>
+
+              <div class="form-field animate-field" style="animation-delay: 0.7s">
+                <mat-form-field appearance="outline" class="animated-mat-field">
+                  <mat-label>Current CGPA (Out of 10)</mat-label>
+                  <input matInput formControlName="cgpa" type="number" step="0.01" min="0" max="10" placeholder="E.g., 8.5">
+                </mat-form-field>
+                <div class="error animate-error" *ngIf="registrationForm.get('cgpa')?.invalid && registrationForm.get('cgpa')?.touched">
+                  CGPA is required and must be between 0 and 10.
+                </div>
+              </div>
+
+              <div class="form-field animate-field" style="animation-delay: 0.8s">
+                <mat-form-field appearance="outline" class="animated-mat-field">
+                  <mat-label>Date of Birth</mat-label>
+                  <input matInput formControlName="dateOfBirth" type="date">
+                </mat-form-field>
+                <div class="error animate-error" *ngIf="registrationForm.get('dateOfBirth')?.invalid && registrationForm.get('dateOfBirth')?.touched">
+                  Date of Birth is required.
+                </div>
+              </div>
+
+              <div class="form-field full-width animate-field" style="animation-delay: 0.9s">
+                <mat-form-field appearance="outline" class="animated-mat-field">
+                  <mat-label>Gender</mat-label>
+                  <mat-select formControlName="gender">
+                    <mat-option value="">Select Gender</mat-option>
+                    <mat-option *ngFor="let gender of genders" [value]="gender.value">{{ gender.label }}</mat-option>
+                  </mat-select>
+                </mat-form-field>
+                <div class="error animate-error" *ngIf="registrationForm.get('gender')?.invalid && registrationForm.get('gender')?.touched">
+                  Gender selection is required.
+                </div>
+              </div>
+
+              <div class="form-field full-width animate-field" style="animation-delay: 1.0s">
+                <mat-form-field appearance="outline" class="animated-mat-field">
+                  <mat-label>Technical Skills (List your primary languages and technologies)</mat-label>
+                  <textarea matInput formControlName="skills" rows="3" placeholder="Enter your key skills, separated by commas (e.g., Java, Python, Angular, Cloud Services)"></textarea>
+                </mat-form-field>
+                <div class="error animate-error" *ngIf="registrationForm.get('skills')?.invalid && registrationForm.get('skills')?.touched">
+                  Skills are required.
+                </div>
+              </div>
+            </div>
+
+            <div *ngIf="isLoading" class="spinner-container animate-spinner" style="animation-delay: 1.1s">
+              <mat-spinner diameter="30"></mat-spinner>
+            </div>
+
+            <p *ngIf="errorMessage" class="error animate-error" style="animation-delay: 1.1s">{{ errorMessage }}</p>
+
+            <button mat-raised-button color="primary" type="submit" class="animated-submit-btn" [disabled]="registrationForm.invalid || isLoading" style="animation-delay: 1.2s">
+              <span class="btn-text">SUBMIT REGISTRATION</span>
+              <span class="btn-ripple"></span>
+            </button>
+          </form>
+        </mat-card-content>
+      </mat-card>
+    </div>
+  </div>
+</section>
+
+<app-footer></app-footer>

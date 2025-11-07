@@ -1,0 +1,14 @@
+<div *ngIf="!hideNavbar" class="navbar-wrapper">
+  <mat-toolbar *ngIf="router.url === '/' || router.url === '/student-registration' || router.url === '/student-login' || router.url === '/admin-login'" class="custom-toolbar">
+    <img src="assets/images/aptical.jpg"
+    alt="Apical Soft Solutions"
+    height="40"
+    class="toolbar-logo"
+    >
+    <button mat-button routerLink="" class="nav-button">Home</button>
+    <button mat-button routerLink="/student-registration" class="nav-button">Registration</button>
+    <button mat-button routerLink="/student-login" class="nav-button">Login</button>
+  </mat-toolbar>
+</div>
+
+<router-outlet></router-outlet>

@@ -1,0 +1,65 @@
+<div class="container">
+  <mat-card>
+    <mat-card-header>
+      <mat-card-title>Exam Instructions</mat-card-title>
+      <mat-card-subtitle>Please read the following rules carefully before you begin.</mat-card-subtitle>
+    </mat-card-header>
+    <mat-card-content>
+      <mat-list role="list">
+        <mat-list-item role="listitem">
+          <mat-icon matListItemIcon>camera_alt</mat-icon>
+          Your webcam will be monitored throughout the exam.
+        </mat-list-item>
+        <mat-list-item role="listitem">
+          <mat-icon matListItemIcon>mic</mat-icon>
+          Your microphone will be monitored for voice detection.
+        </mat-list-item>
+        <mat-list-item role="listitem">
+          <mat-icon matListItemIcon>visibility_off</mat-icon>
+          <div class="instruction-text">
+            Your face must be clearly visible. You will receive <strong>5 warnings</strong> for video issues (face not detected, multiple faces) before termination.
+          </div>
+        </mat-list-item>
+        <mat-list-item role="listitem">
+          <mat-icon matListItemIcon>volume_up</mat-icon>
+          <div class="instruction-text">
+            Audio monitoring is active. You will receive <strong>3 warnings</strong> for voice/noise detection before termination.
+          </div>
+        </mat-list-item>
+        <mat-list-item role="listitem">
+          <mat-icon matListItemIcon>tab_unselected</mat-icon>
+          <div class="instruction-text">
+            Switching tabs or applications will result in <strong>immediate termination</strong> of your exam.
+          </div>
+        </mat-list-item>
+        <mat-list-item role="listitem">
+          <mat-icon matListItemIcon>lock</mat-icon>
+          Once an answer is selected for a question, it cannot be changed.
+        </mat-list-item>
+        <mat-list-item role="listitem">
+          <mat-icon matListItemIcon>timer</mat-icon>
+          This is a timed assessment. Please manage your time accordingly.
+        </mat-list-item>
+      </mat-list>
+      <div class="agreement-section">
+        <mat-checkbox [(ngModel)]="agreedToTerms" class="agreement-checkbox">
+          <span class="agreement-text">I have read and understood all the instructions. I agree to abide by these rules.</span>
+        </mat-checkbox>
+      </div>
+      <div *ngIf="isCheckingPermissions" class="permission-check">
+        <mat-icon class="spinning">refresh</mat-icon>
+        Checking permissions...
+      </div>
+      <div *ngIf="permissionsGranted" class="permission-granted">
+        <mat-icon color="primary">check_circle</mat-icon>
+        Permissions granted successfully!
+      </div>
+    </mat-card-content>
+    <mat-card-actions align="end">
+      <button mat-raised-button color="primary" (click)="startExam()" [disabled]="!agreedToTerms || isCheckingPermissions">
+        <span *ngIf="isCheckingPermissions">Checking Permissions...</span>
+        <span *ngIf="!isCheckingPermissions">Start Exam</span>
+      </button>
+    </mat-card-actions>
+  </mat-card>
+</div>
