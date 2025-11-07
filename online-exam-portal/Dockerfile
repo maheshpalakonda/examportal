@@ -4,11 +4,12 @@ WORKDIR /app
 COPY package*.json ./
 RUN npm ci || npm install
 COPY . .
+# Angular CLI build; fallback to npm script if CLI is local
 RUN npx ng build --configuration production || npm run build
 
 # ---- serve ----
 FROM nginx:stable
-# If your Angular output is dist/online-exam-portal/browser, copy that exact path:
+# If your output is dist/online-exam-portal/browser, copy that exact path:
 # COPY --from=build /app/dist/online-exam-portal/browser /usr/share/nginx/html
 COPY --from=build /app/dist /usr/share/nginx/html
 RUN printf 'server { \

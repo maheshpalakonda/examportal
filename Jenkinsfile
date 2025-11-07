@@ -2,63 +2,69 @@ pipeline {
   agent any
 
   environment {
-    // Docker Hub creds (Username + Access Token) stored in Jenkins
-    REG = credentials('dockerhub-creds') // exposes REG_USR, REG_PSW
-    DOCKERHUB_USER = "${REG_USR}"
+    // Images pushed to Docker Hub
+    BACKEND_IMAGE = "mahesh1925/examportal-backend"
+    FRONTEND_IMAGE = "mahesh1925/examportal-frontend"
 
-    BACKEND_IMAGE = "${REG_USR}/examportal-backend"
-    FRONTEND_IMAGE = "${REG_USR}/examportal-frontend"
-    IMAGE_TAG = "latest"
-
-    // Your server IP
+    // Deployment target
     SERVER_HOST = "72.60.219.208"
+    SERVER_USER = "ubuntu"
 
-    // Your repo (explicit)
+    // Repo
     REPO_URL = "https://github.com/maheshpalakonda/examportal.git"
+    BRANCH   = "master"
+
+    IMAGE_TAG = "latest"
   }
 
-  options { timestamps(); ansiColor('xterm') }
+  options { timestamps() }
 
   stages {
     stage('Checkout') {
       steps {
-        git branch: 'master', url: "${REPO_URL}"
+        checkout([$class: 'GitSCM',
+          userRemoteConfigs: [[url: env.REPO_URL]],
+          branches: [[name: "*/${env.BRANCH}"]]
+        ])
       }
     }
 
-    stage('Build backend image') {
+    stage('Build backend image (Java 21)') {
       steps {
         sh """
-          docker build -t ${BACKEND_IMAGE}:${env.GIT_COMMIT} -t ${BACKEND_IMAGE}:${IMAGE_TAG} ./examportalspring
+          docker build -t ${BACKEND_IMAGE}:\${GIT_COMMIT} -t ${BACKEND_IMAGE}:${IMAGE_TAG} ./examportalspring
         """
       }
     }
 
-    stage('Build frontend image') {
+    stage('Build frontend image (Angular)') {
       steps {
         sh """
-          docker build -t ${FRONTEND_IMAGE}:${env.GIT_COMMIT} -t ${FRONTEND_IMAGE}:${IMAGE_TAG} ./online-exam-portal
+          docker build -t ${FRONTEND_IMAGE}:\${GIT_COMMIT} -t ${FRONTEND_IMAGE}:${IMAGE_TAG} ./online-exam-portal
         """
       }
     }
 
-    stage('Login & Push images') {
+    stage('Login & Push images to Docker Hub') {
       steps {
-        sh """
-          echo "${REG_PSW}" | docker login -u "${REG_USR}" --password-stdin
-          docker push ${BACKEND_IMAGE}:${env.GIT_COMMIT}
-          docker push ${BACKEND_IMAGE}:${IMAGE_TAG}
-          docker push ${FRONTEND_IMAGE}:${env.GIT_COMMIT}
-          docker push ${FRONTEND_IMAGE}:${IMAGE_TAG}
-        """
+        withCredentials([usernamePassword(credentialsId: 'dockerhub-creds', usernameVariable: 'DOCKERHUB_USR', passwordVariable: 'DOCKERHUB_PSW')]) {
+          sh """
+            echo "${DOCKERHUB_PSW}" | docker login -u "${DOCKERHUB_USR}" --password-stdin
+            docker push ${BACKEND_IMAGE}:\${GIT_COMMIT}
+            docker push ${BACKEND_IMAGE}:${IMAGE_TAG}
+            docker push ${FRONTEND_IMAGE}:\${GIT_COMMIT}
+            docker push ${FRONTEND_IMAGE}:${IMAGE_TAG}
+          """
+        }
       }
     }
 
-    stage('Deploy on server') {
+    stage('Deploy to server (SSH + Compose)') {
       steps {
+        // 'prod-ssh' is an SSH Username with private key credential (user: ubuntu)
         sshagent(credentials: ['prod-ssh']) {
           sh """
-            ssh -o StrictHostKeyChecking=no ubuntu@${SERVER_HOST} '
+            ssh -o StrictHostKeyChecking=no ${SERVER_USER}@${SERVER_HOST} '
               set -e
               sudo apt-get update -y
               sudo apt-get install -y docker.io docker-compose-plugin git || true
@@ -66,25 +72,27 @@ pipeline {
               sudo mkdir -p /opt/examportal && sudo chown $USER:$USER /opt/examportal
               cd /opt/examportal
 
-              # Pull repo once; then keep pulling
               if [ -d .git ]; then
                 git pull
               else
                 git clone ${REPO_URL} .
               fi
 
-              # Require .env (created manually once)
-              if [ ! -f .env ]; then
-                echo ".env missing at /opt/examportal (needs DOCKERHUB_USER, MYSQL_ROOT_PASSWORD, MYSQL_DATABASE, IMAGE_TAG)" >&2
-                exit 1
-              fi
-
-              docker login -u ${DOCKERHUB_USER} -p ${REG_PSW}
-              docker compose pull
-              docker compose up -d
-              docker image prune -f
+              # (No server-side .env creation needed — .env is in repo)
             '
           """
+          withCredentials([usernamePassword(credentialsId: 'dockerhub-creds', usernameVariable: 'DOCKERHUB_USR', passwordVariable: 'DOCKERHUB_PSW')]) {
+            sh """
+              ssh -o StrictHostKeyChecking=no ${SERVER_USER}@${SERVER_HOST} '
+                set -e
+                docker login -u ${DOCKERHUB_USR} -p ${DOCKERHUB_PSW}
+                cd /opt/examportal
+                docker compose pull
+                docker compose up -d
+                docker image prune -f
+              '
+            """
+          }
         }
       }
     }
@@ -93,7 +101,7 @@ pipeline {
   post {
     always {
       sh 'docker logout || true'
-      echo 'Done.'
+      echo 'Pipeline finished.'
     }
   }
 }
