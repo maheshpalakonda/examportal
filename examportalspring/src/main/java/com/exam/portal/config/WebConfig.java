@@ -16,7 +16,7 @@ public class WebConfig {
                 // This configuration applies to all API endpoints under /api/
                 registry.addMapping("/api/**") 
                         // Allow requests from your Angular application's origin
-                        .allowedOrigins("http://localhost:4200") 
+                        .allowedOrigins("http://localhost:4200","http://72.60.219.208:8083")
                         // Allow these specific HTTP methods
                         .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS") 
                         // Allow all headers (including the Authorization header)
