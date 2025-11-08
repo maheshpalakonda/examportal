@@ -15,16 +15,16 @@ RUN npm run build --prod || npx ng build --configuration production
 # -------------------------------
 FROM nginx:alpine
 
-# ✅ Correct path for your Angular output folder
-COPY --from=build /app/dist/online-exam-portal /usr/share/nginx/html/browser
+# ✅ Copy only the built Angular files (avoid nested browser folder)
+COPY --from=build /app/dist/online-exam-portal/browser /usr/share/nginx/html
 
 # ✅ Custom Nginx configuration
 RUN cat > /etc/nginx/conf.d/default.conf <<'NGINXCONF'
 server {
     listen 80;
-    server_name localhost;
+    server_name _;
 
-    root /usr/share/nginx/html/browser;
+    root /usr/share/nginx/html;
     index index.html;
 
     location / {
