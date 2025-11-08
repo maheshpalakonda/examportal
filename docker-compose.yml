@@ -3,6 +3,7 @@ version: "3.9"
 name: examportal
 
 services:
+  # 🗄️ Database
   db:
     image: mysql:8.0
     container_name: examportal-db
@@ -15,11 +16,14 @@ services:
       - dbdata:/var/lib/mysql
       - ./examportal.sql:/docker-entrypoint-initdb.d/01_init.sql:ro
     healthcheck:
-      test: ["CMD-SHELL","mysqladmin ping -h 127.0.0.1 -p${MYSQL_ROOT_PASSWORD} --silent"]
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -p${MYSQL_ROOT_PASSWORD} --silent"]
       interval: 10s
       timeout: 5s
       retries: 15
+    networks:
+      - examportal-network
 
+  # ⚙️ Spring Boot Backend
   backend:
     image: ${DOCKERHUB_USER}/examportal-backend:${IMAGE_TAG:-latest}
     container_name: examportal-backend
@@ -36,7 +40,10 @@ services:
     ports:
       - "8080:8080"
     restart: unless-stopped
+    networks:
+      - examportal-network
 
+  # 🌐 Angular Frontend (served via Nginx)
   frontend:
     image: ${DOCKERHUB_USER}/examportal-frontend:${IMAGE_TAG:-latest}
     container_name: examportal-frontend
@@ -47,7 +54,14 @@ services:
     ports:
       - "8083:80"
     restart: unless-stopped
+    networks:
+      - examportal-network
 
+# 🧭 Shared network for internal service communication
+networks:
+  examportal-network:
+
+# 💾 Persistent volume for MySQL data
 volumes:
   dbdata:
 
