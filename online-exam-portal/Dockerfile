@@ -4,11 +4,9 @@
 FROM node:20-alpine AS build
 WORKDIR /app
 
-# Copy package files and install dependencies
 COPY package*.json ./
 RUN npm ci || npm install
 
-# Copy source code and build the app
 COPY . .
 RUN npm run build --prod || npx ng build --configuration production
 
@@ -17,9 +15,8 @@ RUN npm run build --prod || npx ng build --configuration production
 # -------------------------------
 FROM nginx:alpine
 
-# ✅ Copy built Angular files to Nginx html directory
-# (Your Angular build outputs to dist/examportal/browser)
-COPY --from=build /app/dist/examportal/browser /usr/share/nginx/html/browser
+# ✅ Correct path for your Angular output folder
+COPY --from=build /app/dist/online-exam-portal /usr/share/nginx/html/browser
 
 # ✅ Custom Nginx configuration
 RUN cat > /etc/nginx/conf.d/default.conf <<'NGINXCONF'
@@ -27,7 +24,6 @@ server {
     listen 80;
     server_name localhost;
 
-    # Serve Angular files
     root /usr/share/nginx/html/browser;
     index index.html;
 
