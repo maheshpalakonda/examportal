@@ -18,6 +18,7 @@ pipeline {
   stages {
     stage('Checkout') {
       steps {
+        echo "📥 Checking out source code..."
         checkout([$class: 'GitSCM',
           userRemoteConfigs: [[url: env.REPO_URL]],
           branches: [[name: "*/${env.BRANCH}"]]
@@ -41,13 +42,23 @@ pipeline {
 
     stage('Push Images to Docker Hub') {
       steps {
-        echo "📤 Pushing Docker images to Docker Hub..."
+        echo "📤 Pushing Docker images to Docker Hub (with retry logic)..."
         withCredentials([usernamePassword(credentialsId: 'dockerhub-creds', usernameVariable: 'DOCKERHUB_USR', passwordVariable: 'DOCKERHUB_PSW')]) {
-          sh """
+          sh '''
             echo "$DOCKERHUB_PSW" | docker login -u "$DOCKERHUB_USR" --password-stdin
-            docker push ${BACKEND_IMAGE}:${IMAGE_TAG}
-            docker push ${FRONTEND_IMAGE}:${IMAGE_TAG}
-          """
+
+            echo "🚀 Pushing backend image..."
+            for i in 1 2 3; do
+              docker push ${BACKEND_IMAGE}:${IMAGE_TAG} && break || \
+              echo "❌ Push attempt $i failed. Retrying in 15 seconds..." && sleep 15
+            done
+
+            echo "🚀 Pushing frontend image..."
+            for i in 1 2 3; do
+              docker push ${FRONTEND_IMAGE}:${IMAGE_TAG} && break || \
+              echo "❌ Push attempt $i failed. Retrying in 15 seconds..." && sleep 15
+            done
+          '''
         }
       }
     }
@@ -64,7 +75,7 @@ pipeline {
                 echo "🧹 Cleaning old containers..."
                 sudo docker compose --project-name ${DOCKER_COMPOSE_PROJECT} down -v || true
 
-                echo "📂 Ensuring repo directory..."
+                echo "📂 Ensuring latest repo..."
                 cd /opt
                 if [ ! -d ${DOCKER_COMPOSE_PROJECT} ]; then
                   git clone ${REPO_URL} ${DOCKER_COMPOSE_PROJECT}
@@ -78,11 +89,13 @@ pipeline {
                 echo "📦 Pulling latest images..."
                 sudo docker compose --project-name ${DOCKER_COMPOSE_PROJECT} pull
 
-                echo "🚀 Starting new stack..."
+                echo "🚀 Starting updated stack..."
                 sudo docker compose --project-name ${DOCKER_COMPOSE_PROJECT} up -d
 
                 echo "🧼 Cleaning unused images..."
                 sudo docker image prune -f
+
+                echo "✅ Deployment successful!"
               '
             """
           }
