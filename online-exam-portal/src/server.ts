@@ -31,7 +31,7 @@ const angularApp = new AngularNodeAppEngine();
  * This avoids SSR returning the Angular HTML for API calls and fixes JSON parse errors.
  * Target can be overridden via env var API_TARGET.
  */
-const API_TARGET = process.env['API_TARGET'] || 'http://localhost:8080';
+const API_TARGET = process.env['API_TARGET'] || 'http://72.60.219.208:8080';
 app.use('/api', (req, res) => {
   const targetUrl = new NodeURL(req.originalUrl, API_TARGET);
   const backendHost = new NodeURL(API_TARGET).host;
