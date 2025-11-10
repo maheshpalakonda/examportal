@@ -57,8 +57,7 @@ public class SecurityConfig {
         configuration.setAllowedOrigins(List.of(
                 "http://localhost:4200", // Angular dev server
                 "http://localhost:4000",  // Angular SSR server
-		"http://72.60.219.208:8083",
-		"http://72.60.219.208"
+		"http://72.60.219.208:8083"
         ));
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("Authorization", "Content-Type", "Accept", "X-Requested-With"));
