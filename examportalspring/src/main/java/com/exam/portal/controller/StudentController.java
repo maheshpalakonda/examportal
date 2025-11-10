@@ -384,6 +384,8 @@ import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.mail.SimpleMailMessage;
+import org.springframework.mail.javamail.JavaMailSender;
 
 @RestController
 @RequestMapping("/api/student")
@@ -412,6 +414,9 @@ public class StudentController {
 
     @Autowired
     private ObjectMapper objectMapper;
+
+    @Autowired
+    private JavaMailSender mailSender;
 
     // Removed live session persistence per requirement
 
@@ -465,6 +470,14 @@ public class StudentController {
             student.setSkills(skills);
 
             Student savedStudent = studentRepository.save(student);
+	    
+	    // Send registration email
+            try {
+                sendRegistrationEmail(savedStudent);
+            } catch (Exception e) {
+                logger.warn("Failed to send registration email to {}: {}", email, e.getMessage());
+                // Don't fail registration if email fails
+            }
 
             logger.info("Student registered successfully: {}", email);
             return ResponseEntity.ok(Map.of("message", "Registration successful", "studentId", savedStudent.getId()));
@@ -577,6 +590,15 @@ public class StudentController {
             if (mcqAnswers != null) result.setMcqAnswers(objectMapper.writeValueAsString(mcqAnswers));
             if (codingAnswers != null) result.setCodingAnswers(objectMapper.writeValueAsString(codingAnswers));
             resultRepository.save(result);
+		
+	    // Send exam submission email
+            try {
+                sendExamSubmissionEmail(studentEmail, totalScore, totalQuestions);
+            } catch (Exception e) {
+                logger.warn("Failed to send exam submission email to {}: {}", studentEmail, e.getMessage());
+                // Don't fail submission if email fails
+            }
+
 
             return ResponseEntity.ok(Map.of("status", "submitted", "score", totalScore));
         } catch (Exception e) {
@@ -641,7 +663,51 @@ public class StudentController {
         return totalScore;
     }
 
+// Helper methods for email sending
+    private void sendRegistrationEmail(Student student) {
+        SimpleMailMessage message = new SimpleMailMessage();
+        message.setTo(student.getEmail());
+        message.setSubject("Apical Soft Solutions - Registration Successful");
+        message.setText(String.format(
+            "Dear %s,\n\n" +
+            "Congratulations! You have successfully registered for the Online Exam.\n\n" +
+            "Your registration details:\n" +
+            "Name: %s\n" +
+            "Email: %s\n" +
+            "Hall Ticket Number: %s\n" +
+            "College: %s\n" +
+            "Branch: %s\n\n" +
+            "Please keep your hall ticket number safe for login purposes.\n\n" +
+            "Best regards,\n" +
+            "Apical Soft Solutions",
+            student.getName(), student.getName(), student.getEmail(), student.getHallTicketNumber(),
+            student.getCollegeName(), student.getBranch()
+        ));
+        mailSender.send(message);
+    }
 
+    private void sendExamSubmissionEmail(String studentEmail, int score, int totalQuestions) {
+        Optional<Student> studentOpt = studentRepository.findByEmail(studentEmail);
+        if (studentOpt.isEmpty()) {
+            logger.warn("Student not found for email: {}", studentEmail);
+            return;
+        }
+        Student student = studentOpt.get();
+
+        SimpleMailMessage message = new SimpleMailMessage();
+        message.setTo(studentEmail);
+        message.setSubject("Exam Submission Confirmation - Online Exam");
+        message.setText(String.format(
+            "Dear %s,\n\n" +
+            "Your exam has been successfully submitted.\n\n" +
+            "Student Email: %s\n" +
+            "Thank you for participating in the exam.\n\n" +
+            "Best regards,\n" +
+            "Apical Soft Solutions\n\n" ,
+            student.getName(), studentEmail
+        ));
+        mailSender.send(message);
+    }
 
     // --- Section Management for Students ---
     @GetMapping("/exam/{examId}/sections")
