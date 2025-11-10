@@ -449,7 +449,8 @@ import org.slf4j.LoggerFactory;
 
 @RestController
 @RequestMapping("/api/compiler")
-@CrossOrigin(origins = "http://localhost:4200") // Adjust as necessary for your frontend URL
+//@CrossOrigin(origins = "http://localhost:4200") // Adjust as necessary for your frontend URL
+@CrossOrigin(origins = "http://72.60.219.208")
 public class CompilerController {
 
     private static final Logger logger = LoggerFactory.getLogger(CompilerController.class);

@@ -15,7 +15,8 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 @RestController
-@CrossOrigin(origins = "http://localhost:4200")
+//@CrossOrigin(origins = "http://localhost:4200")
+@CrossOrigin(origins = "http://72.60.219.208")
 public class SqlController {
 
     private static final Set<String> FORBIDDEN_KEYWORDS = Set.of(

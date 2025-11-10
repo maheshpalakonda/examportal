@@ -2393,7 +2393,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 
 @RestController
 @RequestMapping("/api/admin")
-@CrossOrigin(origins = {"http://localhost:4200", "http://localhost:4000"})
+@CrossOrigin(origins = {"http://localhost:4200", "http://localhost:4000", "http://72.60.219.208"})
 public class AdminController {
 
     private static final Logger logger = LoggerFactory.getLogger(AdminController.class);
