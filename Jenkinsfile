@@ -4,18 +4,19 @@ pipeline {
   environment {
     BACKEND_IMAGE  = "mahesh1925/examportal-backend"
     FRONTEND_IMAGE = "mahesh1925/examportal-frontend"
+    IMAGE_TAG      = "latest"
 
     SERVER_HOST = "72.60.219.208"
     SERVER_USER = "ubuntu"
 
     REPO_URL  = "https://github.com/maheshpalakonda/examportal.git"
     BRANCH    = "master"
-    IMAGE_TAG = "latest"
 
     DOCKER_COMPOSE_PROJECT = "examportal"
   }
 
   stages {
+
     stage('Checkout') {
       steps {
         echo "📥 Checking out source code..."
@@ -72,8 +73,8 @@ pipeline {
               ssh -o StrictHostKeyChecking=no ${SERVER_USER}@${SERVER_HOST} '
                 set -e
 
-                echo "🧹 Cleaning old containers..."
-                sudo docker compose --project-name ${DOCKER_COMPOSE_PROJECT} down -v || true
+                echo "🧹 Stopping old containers (preserving DB data)..."
+                sudo docker compose --project-name ${DOCKER_COMPOSE_PROJECT} down || true
 
                 echo "📂 Ensuring latest repo..."
                 cd /opt
@@ -86,11 +87,18 @@ pipeline {
                 echo "🔑 Docker login..."
                 echo ${DOCKERHUB_PSW} | sudo docker login -u ${DOCKERHUB_USR} --password-stdin
 
-                echo "📦 Pulling latest images..."
+                echo "💾 (Optional) Backing up MySQL database..."
+                if sudo docker ps | grep -q examportal-db; then
+                  sudo mkdir -p /opt/${DOCKER_COMPOSE_PROJECT}/backup
+                  sudo docker exec examportal-db mysqldump -u root -p\\'root@123\\' newexam > /opt/${DOCKER_COMPOSE_PROJECT}/backup/backup-$(date +%F_%H-%M).sql || true
+                  echo "✅ Backup saved in /opt/${DOCKER_COMPOSE_PROJECT}/backup/"
+                fi
+
+                echo "📦 Pulling latest Docker images..."
                 sudo docker compose --project-name ${DOCKER_COMPOSE_PROJECT} pull
 
-                echo "🚀 Starting updated stack..."
-                sudo docker compose --project-name ${DOCKER_COMPOSE_PROJECT} up -d
+                echo "🚀 Recreating only backend & frontend containers..."
+                sudo docker compose --project-name ${DOCKER_COMPOSE_PROJECT} up -d --force-recreate backend frontend
 
                 echo "🧼 Cleaning unused images..."
                 sudo docker image prune -f

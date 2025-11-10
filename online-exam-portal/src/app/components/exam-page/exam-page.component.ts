@@ -169,6 +169,8 @@ export class ExamPageComponent implements OnInit, OnDestroy {
   @HostListener('document:visibilitychange')
   onVisibilityChange(): void {
     if (document.hidden && isPlatformBrowser(this.platformId)) {
+	this.snackBar.open('Tab switching detected. Exam terminated.', 'Close', { duration: 5000, panelClass: 'error-snackbar' });
+        this.submitExam(true);
       // Commented out tab switching for testing admin panel
     }
   }
