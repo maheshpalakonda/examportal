@@ -14,7 +14,37 @@
 }
 
 .footer p {
-  margin: 0;
+  margin: 0 0 15px 0;
   font-size: 14px;
   font-weight: 400;
+}
+
+.social-links {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+}
+
+.social-link {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #ecf0f1;
+  text-decoration: none;
+  font-size: 14px;
+  transition: color 0.3s ease;
+}
+
+.social-link:hover {
+  color: #3498db;
+}
+
+.social-link mat-icon {
+  font-size: 18px;
+  width: 18px;
+  height: 18px;
+}
+.social-icon {
+  width: 24px;
+  height: 24px;
 }
