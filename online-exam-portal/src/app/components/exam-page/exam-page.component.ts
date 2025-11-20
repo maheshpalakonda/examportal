@@ -116,13 +116,13 @@ export class ExamPageComponent implements OnInit, OnDestroy {
   maxWarnings = 5;
   private proctoringInterval: any;
   private stream: MediaStream | null = null;
-  private audioContext: AudioContext | null = null;
-  private analyser: AnalyserNode | null = null;
-  private microphone: MediaStreamAudioSourceNode | null = null;
-  private audioStream: MediaStream | null = null;
-  voiceWarningCount = 0;
-  maxVoiceWarnings = 3;
-  private voiceDetectionInterval: any;
+  // private audioContext: AudioContext | null = null;
+  // private analyser: AnalyserNode | null = null;
+  // private microphone: MediaStreamAudioSourceNode | null = null;
+  // private audioStream: MediaStream | null = null;
+  // voiceWarningCount = 0;
+  // maxVoiceWarnings = 3;
+  // private voiceDetectionInterval: any;
 
   constructor(
     private http: HttpClient,
@@ -152,16 +152,16 @@ export class ExamPageComponent implements OnInit, OnDestroy {
     this.layout.setHideNavbar(false);
     clearInterval(this.proctoringInterval);
     clearInterval(this.sectionTimerInterval);
-    clearInterval(this.voiceDetectionInterval);
+    // clearInterval(this.voiceDetectionInterval);
     if (this.stream) {
       this.stream.getTracks().forEach(t => t.stop());
     }
-    if (this.audioStream) {
-      this.audioStream.getTracks().forEach(t => t.stop());
-    }
-    if (this.audioContext) {
-      this.audioContext.close();
-    }
+    // if (this.audioStream) {
+    //   this.audioStream.getTracks().forEach(t => t.stop());
+    // }
+    // if (this.audioContext) {
+    //   this.audioContext.close();
+    // }
   }
 
   // -------- proctoring --------
@@ -169,9 +169,8 @@ export class ExamPageComponent implements OnInit, OnDestroy {
   @HostListener('document:visibilitychange')
   onVisibilityChange(): void {
     if (document.hidden && isPlatformBrowser(this.platformId)) {
-	this.snackBar.open('Tab switching detected. Exam terminated.', 'Close', { duration: 5000, panelClass: 'error-snackbar' });
-        this.submitExam(true);
-      // Commented out tab switching for testing admin panel
+      this.snackBar.open('Tab switching detected. Exam terminated.', 'Close', { duration: 5000, panelClass: 'error-snackbar' });
+      this.submitExam(true);
     }
   }
 
@@ -216,11 +215,11 @@ export class ExamPageComponent implements OnInit, OnDestroy {
         this.startFaceDetection();
       }
       // Start voice detection
-      await this.startVoiceDetection();
+      // await this.startVoiceDetection();
     } catch (err) {
       console.error('Proctoring setup failed:', err);
       // Don't navigate away, just show warning and continue without proctoring
-      this.snackBar.open('Camera/microphone access failed. Proctoring disabled.', 'Close', { duration: 3000 });
+      this.snackBar.open('Camera access failed. Proctoring disabled.', 'Close', { duration: 3000 });
     }
   }
 
@@ -246,40 +245,40 @@ export class ExamPageComponent implements OnInit, OnDestroy {
     }, 4000);
   }
 
-  async startVoiceDetection(): Promise<void> {
-    try {
-      this.audioStream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      this.audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
-      this.analyser = this.audioContext.createAnalyser();
-      this.microphone = this.audioContext.createMediaStreamSource(this.audioStream);
-      this.microphone.connect(this.analyser);
-      this.analyser.fftSize = 256;
-      const bufferLength = this.analyser.frequencyBinCount;
-      const dataArray = new Uint8Array(bufferLength);
+  // async startVoiceDetection(): Promise<void> {
+  //   try {
+  //     this.audioStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+  //     this.audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+  //     this.analyser = this.audioContext.createAnalyser();
+  //     this.microphone = this.audioContext.createMediaStreamSource(this.audioStream);
+  //     this.microphone.connect(this.analyser);
+  //     this.analyser.fftSize = 256;
+  //     const bufferLength = this.analyser.frequencyBinCount;
+  //     const dataArray = new Uint8Array(bufferLength);
 
-      this.voiceDetectionInterval = setInterval(() => {
-        if (!this.analyser) return;
-        this.analyser.getByteFrequencyData(dataArray);
-        const average = dataArray.reduce((a, b) => a + b) / dataArray.length;
-        // Medium sensitivity threshold for voice detection
-        const maxValue = Math.max(...dataArray);
-        if (average > 40 || maxValue > 150) { // Medium sensitivity threshold
-          this.voiceWarningCount++;
-          this.snackBar.open(`Proctoring Alert: Voice Detected (${this.voiceWarningCount}/${this.maxVoiceWarnings})`, 'Close', { duration: 2000, panelClass: 'warn-snackbar' });
+  //     this.voiceDetectionInterval = setInterval(() => {
+  //       if (!this.analyser) return;
+  //       this.analyser.getByteFrequencyData(dataArray);
+  //       const average = dataArray.reduce((a, b) => a + b) / dataArray.length;
+  //       // Medium sensitivity threshold for voice detection
+  //       const maxValue = Math.max(...dataArray);
+  //       if (average > 40 || maxValue > 150) { // Medium sensitivity threshold
+  //         this.voiceWarningCount++;
+  //         this.snackBar.open(`Proctoring Alert: Voice Detected (${this.voiceWarningCount}/${this.maxVoiceWarnings})`, 'Close', { duration: 2000, panelClass: 'warn-snackbar' });
 
-          // Check if we've reached the maximum voice warnings
-          if (this.voiceWarningCount >= this.maxVoiceWarnings) {
-            this.snackBar.open('Proctoring Violation: Maximum voice detection warnings exceeded. Exam has been automatically submitted.', 'Close', { duration: 5000, panelClass: 'error-snackbar' });
-            this.submitExam(true);
-          }
-        }
-        // Removed reset of voice warning count to make it cumulative
-      }, 2000);
-    } catch (err) {
-      console.error('Voice detection setup failed:', err);
-      this.snackBar.open('Microphone access failed. Voice detection disabled.', 'Close', { duration: 3000 });
-    }
-  }
+  //         // Check if we've reached the maximum voice warnings
+  //         if (this.voiceWarningCount >= this.maxVoiceWarnings) {
+  //           this.snackBar.open('Proctoring Violation: Maximum voice detection warnings exceeded. Exam has been automatically submitted.', 'Close', { duration: 5000, panelClass: 'error-snackbar' });
+  //           this.submitExam(true);
+  //         }
+  //       }
+  //       // Removed reset of voice warning count to make it cumulative
+  //     }, 2000);
+  //   } catch (err) {
+  //     console.error('Voice detection setup failed:', err);
+  //     this.snackBar.open('Microphone access failed. Voice detection disabled.', 'Close', { duration: 3000 });
+  //   }
+  // }
 
 
 
@@ -331,7 +330,7 @@ export class ExamPageComponent implements OnInit, OnDestroy {
       lockedCodingAnswers: this.lockedCodingAnswers,
       executionResults: this.executionResults,
       warningCount: this.warningCount,
-      voiceWarningCount: this.voiceWarningCount,
+      // voiceWarningCount: this.voiceWarningCount,
       sectionWarningShown: this.sectionWarningShown,
       endedSectionIds: Array.from(this.endedSectionIds),
       selectedLanguage: this.selectedLanguage,
@@ -381,7 +380,7 @@ export class ExamPageComponent implements OnInit, OnDestroy {
       this.lockedCodingAnswers = state.lockedCodingAnswers || {};
       this.executionResults = state.executionResults || {};
       this.warningCount = state.warningCount || 0;
-      this.voiceWarningCount = state.voiceWarningCount || 0;
+      // this.voiceWarningCount = state.voiceWarningCount || 0;
       this.sectionWarningShown = state.sectionWarningShown || false;
       this.endedSectionIds = new Set(state.endedSectionIds || []);
       this.selectedLanguage = state.selectedLanguage || 'java';
@@ -1082,7 +1081,7 @@ submitCode(questionId: number, lang: 'java' | 'python' | 'c'): void {
     if (!this.exam || this.isSubmitting) return;
     this.isSubmitting = true;
     clearInterval(this.proctoringInterval);
-    clearInterval(this.voiceDetectionInterval);
+    // clearInterval(this.voiceDetectionInterval);
     if (isTerminated) {
       this.snackBar.open('Exam terminated due to violation.', 'Close', { duration: 5000, panelClass: 'error-snackbar' });
     }
@@ -1262,3 +1261,4 @@ submitCode(questionId: number, lang: 'java' | 'python' | 'c'): void {
     return JSON.stringify(tc.output || tc.expected);
   }
 }
+
